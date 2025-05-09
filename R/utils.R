@@ -51,19 +51,30 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
   # Create a temporary data frame with the grades for each student
   tmp_df <- dplyr::left_join(marksheet_df, grades_df_selected, by = c(`Student ID` = 'id'))
 
+  # Get data frame of students in marksheet_df with existing grades
+  existing_df <- dplyr::filter(tmp_df, !is.na(Grade))
+
+  # Any conflicts? Already existing grades and new grades too?
+  conflicts_df <- dplyr::filter(tmp_df, !is.na(Grade), !is.na(grade))
+
+  # Are there students in grades_df_selected for whom no ID exists in the marksheet_df?
+  new_students_df <- grades_df_selected |> dplyr::anti_join(marksheet_df, by = c('id' = 'Student ID'))
+
   # Loop through each row of marksheet_df
+  counter <- 0
   for (i in seq(nrow(tmp_df))){
 
     # If we have a `Grade` value already, leave it as it is.
     # So only proceed if `Grade` is NA.
     if (is.na(tmp_df[i, 'Grade'])){
 
-      # If we have no new_grade value, then Grade is set to
+      # If we have no grade, then Grade is set to
       # ZERO and it is an NS in Comment
       if (is.na(tmp_df[i, 'grade'])) {
         tmp_df[i, 'Grade'] <- 'ZERO'
         tmp_df[i, 'Comment'] <- 'NS'
       } else {
+        counter <- counter + 1
         # otherwise, `Grade` is set to `grade`
         tmp_df[i, 'Grade'] <- tmp_df[i, 'grade']
       }
@@ -122,10 +133,52 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
                       startRow = 1, startCol = 'A', colNames = TRUE)
 
   # write it to file
-  openxlsx::saveWorkbook(blsstudentr1_wb,
-                         file = bls_marks_spreadsheet_filename,
-                         returnValue = TRUE,
-                         overwrite = TRUE)
+  success <- openxlsx::saveWorkbook(blsstudentr1_wb,
+                                    file = bls_marks_spreadsheet_filename,
+                                    returnValue = TRUE,
+                                    overwrite = TRUE)
+
+  cat(
+    glue::glue(
+      "There are {nrow(grades_df_selected)} grades in the grades_df input.
+      Of these, {counter} were entered into the BLS marks spreadsheet.
+      The BLS spreadsheet contains rows for {nrow(marksheet_df)} {dplyr::if_else(nrow(marksheet_df) == 1, 'student', 'students')}.
+      It already contained grades for {nrow(existing_df)} {dplyr::if_else(nrow(existing_df) == 1, 'student', 'students')}. These grades were all left unchanged.
+      Of these {nrow(existing_df)} {dplyr::if_else(nrow(existing_df) == 1, 'student', 'students')}, we have new grades for {nrow(conflicts_df)} of them.
+
+      "
+    )
+  )
+
+  if (nrow(conflicts_df) > 0){
+    lines <- glue_data(
+      dplyr::select(conflicts_df, id = `Student ID`, existing_grade = Grade, new_grade = grade),
+      "{sprintf('%-6s', id)}  | existing = {sprintf('%-6s', existing_grade)}  |  new = {sprintf('%-6s', new_grade)}"
+    )
+
+    cat(glue_collapse(lines, sep = "\n"), "\n")
+  }
+
+  cat(
+    glue::glue(
+      "
+      There was {nrow(new_students_df)} {dplyr::if_else(nrow(new_students_df) == 1, 'student', 'students')} for whom we have new grades but who {dplyr::if_else(nrow(new_students_df) == 1, 'is', 'are')} not listed in the BLS marksheet.
+
+      "
+    )
+  )
+
+  if (nrow(new_students_df) > 0){
+    lines <- glue_data(
+      new_students_df,
+      "{sprintf('%-6s', id)}  |  grade = {sprintf('%-6s', grade)}"
+    )
+
+    cat(glue_collapse(lines, sep = "\n"), "\n")
+  }
+
+
+  success
 
 }
 

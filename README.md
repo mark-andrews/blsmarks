@@ -39,8 +39,31 @@ enter_bls_grades(grades_df,
                  id_col = 'nid', grade_col = 'grade')
 ```
 
-This writes the grades to the file. Note how we indicate which columns
-of the data frame have the student IDs and the grades.
+This writes the grades in `grades_df` to the Excel file. Note how we
+indicate which columns of the data frame have the student IDs and the
+grades.
+
+A few other things to note:
+
+- Sometimes grades already exist in the spreadsheet that we get from BLS
+  student records. These grades should not be altered, and so this
+  command does not do so. It could happen that a grade exists already
+  for a student for whom you have a new grade in `grades_df`. This could
+  happen because the student already did and passed the element or
+  module but mistakenly did the assessment again. If grades already
+  exist, they are not overwritten. However, the command will print out
+  the names and the old and new grades of these students for your
+  information.
+- Sometimes grades exist in the grades data frame but there is no row
+  for the relevant student or students in the BLS marksheet. In this
+  case, thise new students are *not* addded to the spreadsheet, but
+  again, the command will print out the names and grades of these
+  students for your information.
+- Apart from this printed out information, the command will print out
+  the number of students in originally in the BLS spreadsheet, how many
+  of these students already have grades, how many grades are in the
+  grades data frame, and how many of the grades in that data frame it
+  entered into the spreadsheet.
 
 Also note that the command `enter_bls_grades` will not overwrite an
 existing grade in the spreadsheet.

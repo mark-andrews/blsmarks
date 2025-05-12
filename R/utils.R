@@ -21,11 +21,11 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
   stopifnot(length(grades_df_selected$id) == length(unique(grades_df_selected$id)))
 
   # 2) Each grade should be from one or other of these lists
-  UG_grade_levels <- c("1EXC", "1HIGH", "1MID", "1LOW", "21HIGH", "21MID", "21LOW",
+  UG_grade_levels <- c("ZERO", "1EXC", "1HIGH", "1MID", "1LOW", "21HIGH", "21MID", "21LOW",
                        "22HIGH","22MID","22LOW","3HIGH", "3MID","3LOW", "FMARG", "FMID", "FLOW"
   )
 
-  PG_grade_levels <- c('DEXC','DHIGH','DMID','DLOW','CHIGH','CMID','CLOW',
+  PG_grade_levels <- c("ZERO", 'DEXC','DHIGH','DMID','DLOW','CHIGH','CMID','CLOW',
                        'PHIGH','PMID','PLOW','FMARG','FMID', 'FLOW')
 
   stopifnot(

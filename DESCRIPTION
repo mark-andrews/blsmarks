@@ -1,7 +1,7 @@
 Package: blsmarks
 Type: Package
 Title: Enter Grades into NTU BLS Marks Excel Spreadsheets
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person(
       "Mark", "Andrews",
@@ -14,10 +14,11 @@ Description: All student grades for BLS in NTU must be entered into Excel Spread
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends:
   R (>= 4.1.0)
 Imports: 
+    cli (>= 3.6.5),
     dplyr (>= 1.1.4),
     openxlsx (>= 4.2.8),
     readxl (>= 1.4.5),

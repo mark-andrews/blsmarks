@@ -60,13 +60,21 @@
 #'                      id_col    = "student_id",
 #'                      grade_col = "grade_val")
 #' )
-validate_grades_df <- function(grades_df, id_col = 'id', grade_col = 'grade', return_df = FALSE){
+validate_grades_df <- function(
+  grades_df,
+  id_col = 'id',
+  grade_col = 'grade',
+  return_df = FALSE
+) {
   # `grades_df` must be a data frame with one column indicating student IDs
   # (i.e., N numbers) and one column being student grades. It may have other
   # columns, but they are ignored.
   # The student ID column is indicated by the value, a string, of the argument `id_col`.
   # The grades column is indicated by the value, a string, of the argument `grade_col`.
-  grades_df_selected <- dplyr::select(grades_df, dplyr::all_of(c(id=id_col, grade=grade_col)))
+  grades_df_selected <- dplyr::select(
+    grades_df,
+    dplyr::all_of(c(id = id_col, grade = grade_col))
+  )
 
   # Checks =====================================================================
   cli::cli_h1("Running BLS Grade Entry Validation")
@@ -80,31 +88,68 @@ validate_grades_df <- function(grades_df, id_col = 'id', grade_col = 'grade', re
     cli::cli_alert_success("All student IDs are unique")
   } else {
     all_valid <- FALSE
-    msg <- paste("{.strong Duplicate student IDs found}:",
-                 cli::cli_vec(unique(duplicate_ids), list("vec-trunc" = 5)))
+    msg <- paste(
+      "{.strong Duplicate student IDs found}:",
+      cli::cli_vec(unique(duplicate_ids), list("vec-trunc" = 5))
+    )
     validation_messages <- c(validation_messages, msg)
     cli::cli_alert_danger("Duplicate student IDs found")
   }
 
   # Check 2: Valid grade values ------------------------------------------------
   # Define the grade level vectors
-  UG_grade_levels <- c("ZERO", "1EXC", "1HIGH", "1MID", "1LOW", "21HIGH", "21MID", "21LOW",
-                       "22HIGH", "22MID", "22LOW", "3HIGH", "3MID", "3LOW", "FMARG", "FMID", "FLOW")
+  UG_grade_levels <- c(
+    "ZERO",
+    "1EXC",
+    "1HIGH",
+    "1MID",
+    "1LOW",
+    "21HIGH",
+    "21MID",
+    "21LOW",
+    "22HIGH",
+    "22MID",
+    "22LOW",
+    "3HIGH",
+    "3MID",
+    "3LOW",
+    "FMARG",
+    "FMID",
+    "FLOW"
+  )
 
-  PG_grade_levels <- c("ZERO", "DEXC", "DHIGH", "DMID", "DLOW", "CHIGH", "CMID", "CLOW",
-                       "PHIGH", "PMID", "PLOW", "FMARG", "FMID", "FLOW")
+  PG_grade_levels <- c(
+    "ZERO",
+    "DEXC",
+    "DHIGH",
+    "DMID",
+    "DLOW",
+    "CHIGH",
+    "CMID",
+    "CLOW",
+    "PHIGH",
+    "PMID",
+    "PLOW",
+    "FMARG",
+    "FMID",
+    "FLOW"
+  )
 
   # Define shared values
-  shared_values <- intersect(UG_grade_levels,PG_grade_levels)
+  shared_values <- intersect(UG_grade_levels, PG_grade_levels)
 
   # Check if all grades are valid (in either UG or PG)
-  invalid_grades <- grades_df_selected$grade[!grades_df_selected$grade %in% c(UG_grade_levels, PG_grade_levels)]
+  invalid_grades <- grades_df_selected$grade[
+    !grades_df_selected$grade %in% c(UG_grade_levels, PG_grade_levels)
+  ]
   if (length(invalid_grades) == 0) {
     cli::cli_alert_success("All grades are valid")
   } else {
     all_valid <- FALSE
-    msg <- paste("{.strong Invalid grades found}:",
-                 cli::cli_vec(unique(invalid_grades), list("vec-trunc" = 5)))
+    msg <- paste(
+      "{.strong Invalid grades found}:",
+      cli::cli_vec(unique(invalid_grades), list("vec-trunc" = 5))
+    )
     validation_messages <- c(validation_messages, msg)
     cli::cli_alert_danger(msg)
     cli::cli_ul(c(
@@ -135,8 +180,12 @@ validate_grades_df <- function(grades_df, id_col = 'id', grade_col = 'grade', re
   # If vector has both UG-specific and PG-specific values, it's invalid
   if (has_ug_specific && has_pg_specific) {
     all_valid <- FALSE
-    mixed_ug <- unique(grades_df_selected$grade[grades_df_selected$grade %in% ug_specific])
-    mixed_pg <- unique(grades_df_selected$grade[grades_df_selected$grade %in% pg_specific])
+    mixed_ug <- unique(grades_df_selected$grade[
+      grades_df_selected$grade %in% ug_specific
+    ])
+    mixed_pg <- unique(grades_df_selected$grade[
+      grades_df_selected$grade %in% pg_specific
+    ])
     msg <- paste("{.strong Mixed UG and PG grades found}")
     validation_messages <- c(validation_messages, msg)
     cli::cli_alert_danger(msg)
@@ -152,12 +201,19 @@ validate_grades_df <- function(grades_df, id_col = 'id', grade_col = 'grade', re
   cli::cli_h2("Validation Summary")
   if (all_valid) {
     cli::cli_alert_success("All checks passed successfully!")
-    cli::cli_alert_info("Found {nrow(grades_df_selected)} valid student records with {.val {grade_type}} grading scheme.")
+    cli::cli_alert_info(
+      "Found {nrow(grades_df_selected)} valid student records with {.val {grade_type}} grading scheme."
+    )
     if (return_df) return(grades_df_selected)
   } else {
-    cli::cli_alert_danger("Validation failed with {length(validation_messages)} issue(s):")
+    cli::cli_alert_danger(
+      "Validation failed with {length(validation_messages)} issue(s):"
+    )
     cli::cli_ul(validation_messages)
-    stop("Validation checks failed - please fix the issues above", call. = FALSE)
+    stop(
+      "Validation checks failed - please fix the issues above",
+      call. = FALSE
+    )
   }
 
   invisible(NULL)
@@ -174,20 +230,35 @@ validate_grades_df <- function(grades_df, id_col = 'id', grade_col = 'grade', re
 #'
 #' @returns TRUE if BLS marks spreadsheet is successfully written, FALSE otherwise
 #' @export
-enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col = 'id', grade_col = 'grade'){
-
-
+enter_bls_grades <- function(
+  grades_df,
+  bls_marks_spreadsheet_filename,
+  id_col = 'id',
+  grade_col = 'grade'
+) {
   # Validated grades_df and return new data frame with the two main columns
-  grades_df_selected <- validate_grades_df(grades_df, id_col = id_col, grade_col = grade_col, return_df = TRUE)
+  grades_df_selected <- validate_grades_df(
+    grades_df,
+    id_col = id_col,
+    grade_col = grade_col,
+    return_df = TRUE
+  )
 
   marksheet_df <-
-    readxl::read_excel(path = bls_marks_spreadsheet_filename, sheet = 'Grades') |>
+    readxl::read_excel(
+      path = bls_marks_spreadsheet_filename,
+      sheet = 'Grades'
+    ) |>
     # Grade and Comment must be character
     # For some reason, they are read in as lgl
     dplyr::mutate(dplyr::across(c(Grade, Comment), as.character))
 
   # Create a temporary data frame with the grades for each student
-  tmp_df <- dplyr::left_join(marksheet_df, grades_df_selected, by = c(`Student ID` = 'id'))
+  tmp_df <- dplyr::left_join(
+    marksheet_df,
+    grades_df_selected,
+    by = c(`Student ID` = 'id')
+  )
 
   # Get data frame of students in marksheet_df with existing grades
   existing_df <- dplyr::filter(tmp_df, !is.na(Grade))
@@ -196,16 +267,15 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
   conflicts_df <- dplyr::filter(tmp_df, !is.na(Grade), !is.na(grade))
 
   # Are there students in grades_df_selected for whom no ID exists in the marksheet_df?
-  new_students_df <- grades_df_selected |> dplyr::anti_join(marksheet_df, by = c('id' = 'Student ID'))
+  new_students_df <- grades_df_selected |>
+    dplyr::anti_join(marksheet_df, by = c('id' = 'Student ID'))
 
   # Loop through each row of marksheet_df
   counter <- 0
-  for (i in seq(nrow(tmp_df))){
-
+  for (i in seq(nrow(tmp_df))) {
     # If we have a `Grade` value already, leave it as it is.
     # So only proceed if `Grade` is NA.
-    if (is.na(tmp_df[i, 'Grade'])){
-
+    if (is.na(tmp_df[i, 'Grade'])) {
       # If we have no grade, then Grade is set to
       # ZERO and it is an NS in Comment
       if (is.na(tmp_df[i, 'grade'])) {
@@ -217,42 +287,45 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
         tmp_df[i, 'Grade'] <- tmp_df[i, 'grade']
       }
     }
-
   }
 
   # Checks: -----------------------------------------------------------------
   # 1) Are all grades that were initially in marksheet_df, if any, also in tmp_df now?
 
   original_marksheet_grades <-
-    marksheet_df |
-    dplyr::select(id = `Student ID`, grade = Grade) %>%
+    marksheet_df |>
+    dplyr::select(id = `Student ID`, grade = Grade) |>
     tidyr::drop_na()
 
   tmp_marksheet_grades <-
-    tmp_df |
-    dplyr::select(id = `Student ID`, grade = Grade) %>%
+    tmp_df |>
+    dplyr::select(id = `Student ID`, grade = Grade) |>
     tidyr::drop_na()
 
   stopifnot(
-    dplyr::inner_join(original_marksheet_grades,
-               tmp_marksheet_grades,
-               by = 'id',
-               suffix = c('_orig', '_tmp')) %>%
-      dplyr::mutate(hit = grade_orig == grade_tmp) %>%
-      dplyr::summarise(hit = all(hit)) %>%
+    dplyr::inner_join(
+      original_marksheet_grades,
+      tmp_marksheet_grades,
+      by = 'id',
+      suffix = c('_orig', '_tmp')
+    ) |>
+      dplyr::mutate(hit = grade_orig == grade_tmp) |>
+      dplyr::summarise(hit = all(hit)) |>
       dplyr::pull(hit)
   )
 
   # 2) Are all grades in grades_df_selected, unless they were in marksheet already, in tmp_df?
 
   stopifnot(
-    dplyr::inner_join(grades_df_selected,
-               tmp_marksheet_grades %>%
-                 dplyr::anti_join(original_marksheet_grades, by = 'id'),
-               by = 'id',
-               suffix = c('_grades', '_tmp')) %>%
-      dplyr::mutate(hit = grade_grades == grade_tmp) %>%
-      dplyr::summarise(hit = all(hit)) %>%
+    dplyr::inner_join(
+      grades_df_selected,
+      tmp_marksheet_grades |>
+        dplyr::anti_join(original_marksheet_grades, by = 'id'),
+      by = 'id',
+      suffix = c('_grades', '_tmp')
+    ) |>
+      dplyr::mutate(hit = grade_grades == grade_tmp) |>
+      dplyr::summarise(hit = all(hit)) |>
       dplyr::pull(hit)
   )
 
@@ -264,17 +337,23 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
   blsstudentr1_wb <- openxlsx::loadWorkbook(bls_marks_spreadsheet_filename)
 
   # write the new data frame
-  openxlsx::writeData(wb = blsstudentr1_wb,
-                      sheet = 'Grades',
-                      # write `tmp_df` without grade
-                      x = select(tmp_df, -grade),
-                      startRow = 1, startCol = 'A', colNames = TRUE)
+  openxlsx::writeData(
+    wb = blsstudentr1_wb,
+    sheet = 'Grades',
+    # write `tmp_df` without grade
+    x = select(tmp_df, -grade),
+    startRow = 1,
+    startCol = 'A',
+    colNames = TRUE
+  )
 
   # write it to file
-  success <- openxlsx::saveWorkbook(blsstudentr1_wb,
-                                    file = bls_marks_spreadsheet_filename,
-                                    returnValue = TRUE,
-                                    overwrite = TRUE)
+  success <- openxlsx::saveWorkbook(
+    blsstudentr1_wb,
+    file = bls_marks_spreadsheet_filename,
+    returnValue = TRUE,
+    overwrite = TRUE
+  )
 
   cat(
     glue::glue(
@@ -288,9 +367,14 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
     )
   )
 
-  if (nrow(conflicts_df) > 0){
+  if (nrow(conflicts_df) > 0) {
     lines <- glue_data(
-      dplyr::select(conflicts_df, id = `Student ID`, existing_grade = Grade, new_grade = grade),
+      dplyr::select(
+        conflicts_df,
+        id = `Student ID`,
+        existing_grade = Grade,
+        new_grade = grade
+      ),
       "{sprintf('%-6s', id)}  | existing = {sprintf('%-6s', existing_grade)}  |  new = {sprintf('%-6s', new_grade)}"
     )
 
@@ -305,7 +389,7 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
     )
   )
 
-  if (nrow(new_students_df) > 0){
+  if (nrow(new_students_df) > 0) {
     lines <- glue_data(
       new_students_df,
       "{sprintf('%-6s', id)}  |  grade = {sprintf('%-6s', grade)}"
@@ -314,9 +398,7 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
     cat(glue_collapse(lines, sep = "\n"), "\n")
   }
 
-
   success
-
 }
 
 
@@ -340,6 +422,8 @@ enter_bls_grades <- function(grades_df, bls_marks_spreadsheet_filename, id_col =
 #'     head(data)
 #'   }
 #' }
-get_example_xlsx_path <- function(filename = "PSYC20255_24424_M01_PHT_25-202425.xlsx") {
+get_example_xlsx_path <- function(
+  filename = "PSYC20255_24424_M01_PHT_25-202425.xlsx"
+) {
   system.file("extdata", filename, package = "blsmarks")
 }
